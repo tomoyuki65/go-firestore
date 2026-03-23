@@ -31,7 +31,7 @@ docker compose down
 <br>
   
 ## Firebase Emulator Suiteの開き方
-ローカルサーバー起動後、ブラウザで「http://localhost:4000」を開く  
+ローカルサーバー起動後、ブラウザで「http://localhost:4000 」を開く  
   
 <br>
   
