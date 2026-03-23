@@ -1,0 +1,39 @@
+services:
+  api:
+    container_name: go-firestore-api
+    build:
+      context: .
+      dockerfile: ./docker/local/go/Dockerfile
+    command: air -c .air.toml
+    volumes:
+      - ./src:/go/src
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    environment:
+      FIRESTORE_EMULATOR_HOST: firestore:8080
+    tty: true
+    stdin_open: true
+    depends_on:
+      - firestore
+  firestore:
+    container_name: go-firestore-db
+    build:
+      context: .
+      dockerfile: ./docker/local/db/Dockerfile
+    command: >
+      firebase emulators:start
+      --only firestore
+      --project demo-project
+      --import=./data/export
+      --export-on-exit
+    volumes:
+      - ./firebase.json:/app/firebase.json
+      - firestore_data:/app/data
+    ports:
+      - "4000:4000" # Emulator UI
+      - "8080:8080" # Firestore Emulator
+      - "9150:9150" # Firestore WebSocket
+volumes:
+  firestore_data:
