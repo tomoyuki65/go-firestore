@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -51,6 +52,15 @@ func main() {
 		return c.JSON(http.StatusOK, res)
 	})
 
+	// Firestoreクライアント取得
+	ctx := context.Background()
+	client, err := database.NewFirestoreClient(ctx)
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to create Firestore client: %v", err))
+		os.Exit(1)
+	}
+	defer client.Close()
+
 	// サンプルAPI（CRUD処理）を追加
 	apiV1 := e.Group("/api/v1")
 
@@ -63,14 +73,6 @@ func main() {
 		}
 
 		ctx := c.Request().Context()
-
-		// Firestoreクライアント取得
-		client, err := database.NewFirestoreClient(ctx)
-		if err != nil {
-			errMsg := fmt.Sprintf("failed to create Firestore client: %v", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, errMsg)
-		}
-		defer client.Close()
 
 		// ドキュメント作成
 		docRef, _, err := client.Collection("messages").Add(ctx, map[string]interface{}{
@@ -113,14 +115,6 @@ func main() {
 	// 全てのメッセージ取得
 	apiV1.GET("/messages", func(c echo.Context) error {
 		ctx := c.Request().Context()
-
-		// Firestoreクライアント取得
-		client, err := database.NewFirestoreClient(ctx)
-		if err != nil {
-			errMsg := fmt.Sprintf("failed to create Firestore client: %v", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, errMsg)
-		}
-		defer client.Close()
 
 		// イテレーター取得
 		iter := client.Collection("messages").Documents(ctx)
@@ -177,14 +171,6 @@ func main() {
 
 		ctx := c.Request().Context()
 
-		// Firestoreクライアント取得
-		client, err := database.NewFirestoreClient(ctx)
-		if err != nil {
-			errMsg := fmt.Sprintf("failed to create Firestore client: %v", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, errMsg)
-		}
-		defer client.Close()
-
 		// 対象データ取得
 		docSnap, err := client.Collection("messages").Doc(id).Get(ctx)
 		if err != nil {
@@ -232,14 +218,6 @@ func main() {
 		}
 
 		ctx := c.Request().Context()
-
-		// Firestoreクライアント取得
-		client, err := database.NewFirestoreClient(ctx)
-		if err != nil {
-			errMsg := fmt.Sprintf("failed to create Firestore client: %v", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, errMsg)
-		}
-		defer client.Close()
 
 		// 更新処理（トランザクション利用）
 		docRef := client.Collection("messages").Doc(id)
@@ -314,14 +292,6 @@ func main() {
 		}
 
 		ctx := c.Request().Context()
-
-		// Firestoreクライアント取得
-		client, err := database.NewFirestoreClient(ctx)
-		if err != nil {
-			errMsg := fmt.Sprintf("failed to create Firestore client: %v", err)
-			return echo.NewHTTPError(http.StatusInternalServerError, errMsg)
-		}
-		defer client.Close()
 
 		// 対象データの存在チェック
 		_, err = client.Collection("messages").Doc(id).Get(ctx)
